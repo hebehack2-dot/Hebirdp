@@ -16,17 +16,14 @@ jobs:
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
-    - name: Create RDP User (NO PASSWORD ERROR)
+    - name: Create RDP User (FINAL WORKING)
       shell: powershell
       run: |
-        # ✅ Windows-safe password generator
-        $password = [System.Web.Security.Membership]::GeneratePassword(16,4)
+        $password = "Aa@" + (Get-Random -Minimum 100000000 -Maximum 999999999)
 
-        $secure = ConvertTo-SecureString $password -AsPlainText -Force
-
-        New-LocalUser -Name "RDP" -Password $secure -AccountNeverExpires
-        Add-LocalGroupMember -Group "Administrators" -Member "RDP"
-        Add-LocalGroupMember -Group "Remote Desktop Users" -Member "RDP"
+        net user RDP $password /add
+        net localgroup administrators RDP /add
+        net localgroup "Remote Desktop Users" RDP /add
 
         echo "RDP_USER=RDP" >> $env:GITHUB_ENV
         echo "RDP_PASS=$password" >> $env:GITHUB_ENV
